@@ -1,11 +1,10 @@
 <?php
 require_once __DIR__ . '/../interfaces/ProductInterface.php';
-
 require_once __DIR__ . '/../includes/validation.php';
 
 class Product implements ProductInterface {
     private $conn;
-    private $table_name = "goods_services";
+    private $table_name = "goods_services"; // ✅ Correct table
 
     public $id;
     public $name;
@@ -23,7 +22,7 @@ class Product implements ProductInterface {
     public function create($data) {
         try {
             $query = "INSERT INTO " . $this->table_name . " 
-                     SET name=:name, description=:description, price=:price, 
+                     SET name=:name, description=:description, price=:price,
                          category_id=:category_id, type=:type, created_by=:created_by";
             
             $stmt = $this->conn->prepare($query);
@@ -35,7 +34,6 @@ class Product implements ProductInterface {
             $this->type = htmlspecialchars(strip_tags(trim($data['type'])));
             $this->created_by = htmlspecialchars(strip_tags(trim($data['created_by'])));
 
-            // Validate price
             if(empty($this->price) || !is_numeric($this->price) || $this->price <= 0) {
                 throw new Exception("Price must be a positive number");
             }
@@ -47,12 +45,7 @@ class Product implements ProductInterface {
             $stmt->bindParam(":type", $this->type);
             $stmt->bindParam(":created_by", $this->created_by);
 
-            if($stmt->execute()) {
-                $this->id = $this->conn->lastInsertId();
-                return true;
-            }
-            return false;
-
+            return $stmt->execute();
         } catch(PDOException $exception) {
             throw new Exception("Product creation failed: " . $exception->getMessage());
         }
@@ -71,11 +64,11 @@ class Product implements ProductInterface {
     }
 
     public function update($id, $data) {
-        $query = "UPDATE " . $this->table_name . " 
-                 SET name=:name, description=:description, price=:price, 
-                     category_id=:category_id, type=:type 
+        $query = "UPDATE " . $this->table_name . "
+                 SET name=:name, description=:description, price=:price,
+                     category_id=:category_id, type=:type
                  WHERE id=:id";
-        
+
         $stmt = $this->conn->prepare($query);
 
         $name = htmlspecialchars(strip_tags(trim($data['name'])));
@@ -94,10 +87,11 @@ class Product implements ProductInterface {
         return $stmt->execute();
     }
 
+    // ✅ FIXED DELETE METHOD (uses correct table)
     public function delete($id) {
         $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":id", $id);
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 
@@ -108,12 +102,12 @@ class Product implements ProductInterface {
                  LEFT JOIN users u ON gs.created_by = u.id
                  WHERE gs.name LIKE :keyword OR gs.description LIKE :keyword
                  ORDER BY gs.created_at DESC";
-        
+
         $stmt = $this->conn->prepare($query);
         $search_keyword = "%" . htmlspecialchars(strip_tags(trim($keyword))) . "%";
         $stmt->bindParam(":keyword", $search_keyword);
         $stmt->execute();
-        
+
         return $stmt;
     }
 
@@ -130,7 +124,7 @@ class Product implements ProductInterface {
                  LEFT JOIN categories c ON gs.category_id = c.id
                  LEFT JOIN users u ON gs.created_by = u.id
                  WHERE gs.id = :id LIMIT 1";
-        
+
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
@@ -142,4 +136,3 @@ class Product implements ProductInterface {
     }
 }
 ?>
-

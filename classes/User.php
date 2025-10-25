@@ -286,5 +286,15 @@ class User implements UserInterface {
         }
         return false;
     }
+
+    public function delete($id) {
+    $query = "DELETE FROM users WHERE id = :id";
+    $stmt = $this->conn->prepare($query);
+
+    $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+    return $stmt->execute();
+}
+
+
 }
 ?>

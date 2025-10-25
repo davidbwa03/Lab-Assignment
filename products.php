@@ -54,6 +54,21 @@ if(isset($_GET['search']) && !empty($_GET['search'])) {
     $search_term = Validation::sanitizeInput($_GET['search']);
     $search_results = $product->search($search_term);
 }
+// Handle delete action
+if (isset($_GET['delete_id'])) {
+    $delete_id = intval($_GET['delete_id']);
+
+    if ($product->delete($delete_id)) {
+        $success = "Product/Service deleted successfully!";
+    } else {
+        $error = "Failed to delete product/service.";
+    }
+
+    // Refresh page to remove GET parameter
+    header("Location: products.php");
+    exit;
+}
+
 
 // Get all products and categories
 $products = $product->read();
@@ -248,7 +263,17 @@ $categories = $product->getCategories();
                                         </td>
                                         <td><?php echo htmlspecialchars($row['created_by_name']); ?></td>
                                         <td><?php echo date('M j, Y', strtotime($row['created_at'])); ?></td>
+                                    <td>
+    <a href="products.php?delete_id=<?php echo $row['id']; ?>"
+       class="btn btn-danger btn-sm"
+       onclick="return confirm('Are you sure you want to delete this item?');">
+        <i class="bi bi-trash"></i> Delete
+    </a>
+</td>
+
+                                    
                                     </tr>
+
                                     <?php 
                                         endwhile; 
                                     else: 
