@@ -1,7 +1,7 @@
 <?php
-$host = '127.0.0.1';      // or 'localhost'
+$host = '127.0.0.1';      
 $db   = 'business_app';        // your database name
-$user = 'root';           // your MySQL username
+$user = 'root';           
 $pass = '12345';               // your MySQL password 
 $charset = 'utf8mb4';     // character encoding
 
